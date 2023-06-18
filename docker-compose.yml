@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  ka-api:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: ka-api
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./.env
+
+  ka-proxy:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - C:\Users\Liping.Wang\.aws\credentials:/root/.aws/credentials
+    depends_on:
+      - ka-api
+
+
+networks:
+  default:
+    name: knowledge-articles_default
