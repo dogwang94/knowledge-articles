@@ -7,6 +7,7 @@ on:
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
+  PAT_TOKEN: ${{ secrets.KA-GITHUB_TOKEN }}
 
 jobs:
   searchKeyword:
@@ -79,7 +80,7 @@ jobs:
             Auto-closing issue-number: ${{ github.event.issue.number }}
           labels: |
             knowledge article
-          token: ${{ secrets.KA-GITHUB_TOKEN }}
+            
 #   sendFeedbackNotification:
 #     needs: closeIssue
 #     runs-on: ubuntu-latest
