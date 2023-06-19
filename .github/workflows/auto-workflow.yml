@@ -72,14 +72,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Close Issue
-        uses: peter-evans/close-issue@v3
+        uses: peter-evans/close-issue@v2
         with:
           comment: |
             The issue has been resolved and the keyword was found in these files: ${{ steps.find_files.outputs.files }}.
             Auto-closing issue-number: ${{ github.event.issue.number }}
           labels: |
             knowledge article
-
+          token: ${{ secrets.KA-GITHUB_TOKEN }}
 #   sendFeedbackNotification:
 #     needs: closeIssue
 #     runs-on: ubuntu-latest
