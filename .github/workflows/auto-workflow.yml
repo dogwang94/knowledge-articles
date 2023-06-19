@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Close Issue
-        uses: peter-evans/close-issue@v2
+        uses: peter-evans/close-issue@v3
         with:
           comment: |
             The issue has been resolved and the keyword was found in these files: ${{ steps.find_files.outputs.files }}.
