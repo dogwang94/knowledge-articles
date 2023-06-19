@@ -7,7 +7,6 @@ on:
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
-  GITHUB_TOKEN: ${{ secrets.KA-GITHUB_TOKEN }}
 
 jobs:
   searchKeyword:
