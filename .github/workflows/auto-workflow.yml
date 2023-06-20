@@ -62,6 +62,11 @@ jobs:
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
       run: |
+        echo "KA_GITHUB_REPO_OWNER: $GITHUB_REPO_OWNER"
+        echo "KA_GITHUB_REPO_NAME: $GITHUB_REPO_NAME"
+        echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
+        echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
+        echo "SLACK_SIGNING_SECRET: $SLACK_SIGNING_SECRET"
         echo "Thread timestamp: ${{ env.THREAD_TS }}"
         python app.py send_notification_to_slack ${{ github.event.issue.number }} ${{ secrets.KA_GITHUB_REPO_OWNER }} ${{ secrets.KA_GITHUB_REPO_NAME }}
         
