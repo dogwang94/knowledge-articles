@@ -62,6 +62,7 @@ jobs:
       id: get_thread_timestamp
       run: |
         thread_timestamp=$(python app.py get_thread_timestamp ${{ github.event.issue.number }} ${{ secrets.KA_GITHUB_REPO_OWNER }} ${{ secrets.KA_GITHUB_REPO_NAME }})
+        echo "Thread timestamp: $thread_timestamp"
         echo "::set-output name=thread_timestamp::$thread_timestamp"
         
     - name: Send App Bot Notification to Slack Thread
