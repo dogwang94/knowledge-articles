@@ -63,7 +63,7 @@ jobs:
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
       run: |
-        python app.py send_notification_to_slack ${{ github.event.issue.number }} "Notification message goes here"
+        python app.py send_notification_to_slack ${{ github.event.issue.number }} ${{ secrets.KA_GITHUB_REPO_OWNER }} ${{ secrets.KA_GITHUB_REPO_NAME }}
         echo "Thread timestamp: ${{ env.THREAD_TS }}"
       
     - name: Send KA Notification
