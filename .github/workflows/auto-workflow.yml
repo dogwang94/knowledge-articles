@@ -58,6 +58,9 @@ jobs:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
     
+    - name: Debug comments
+      run: echo "${{ toJson(github.event.issue.comments) }}"
+      
     - name: Extract thread_ts
       id: extract_thread_ts
       run: echo "::set-output name=thread_ts::${{ fromJson(github.event.issue.comments)[0].thread_ts }}"
