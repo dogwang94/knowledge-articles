@@ -65,6 +65,10 @@ jobs:
         echo "Thread timestamp: $thread_timestamp"
         echo "::set-output name=thread_timestamp::$thread_timestamp"
         
+    - name: Run Flask Application
+      run: |
+        python -c "from app import run_app; run_app()"
+        
     - name: Send App Bot Notification to Slack Thread
       if: steps.get_thread_timestamp.outputs.thread_timestamp != 'None'
       run: |
