@@ -57,7 +57,8 @@ jobs:
     - name: Send App Bot Notification to Slack Thread
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       env:
-        GITHUB_REPO_OWNER: ${{ secrets.GITHUB_REPO_OWNER }}
+        GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
+        GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
       run: |
         python app.py send_notification_to_slack ${{ github.event.issue.number }} "Notification message goes here"
         echo "Thread timestamp: ${{ env.THREAD_TS }}"
