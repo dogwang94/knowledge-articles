@@ -53,8 +53,15 @@ jobs:
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
-      
+     
+    - name: Get Thread Timestamp
+      id: get_thread_timestamp
+      run: |
+        thread_timestamp=$(python app.py get_thread_timestamp ${{ github.event.issue.number }} ${{ secrets.KA_GITHUB_REPO_OWNER }} ${{ secrets.KA_GITHUB_REPO_NAME }})
+        echo "::set-output name=thread_timestamp::$thread_timestamp"
+        
     - name: Send App Bot Notification to Slack Thread
+      if: steps.get_thread_timestamp.outputs.thread_timestamp != 'None'
       env:
         GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
         GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
@@ -67,7 +74,7 @@ jobs:
         echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
         echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
         echo "SLACK_SIGNING_SECRET: $SLACK_SIGNING_SECRET"
-        echo "Thread timestamp: ${{ env.THREAD_TS }}"
+        echo "Thread timestamp: ${{ steps.get_thread_timestamp.outputs.thread_timestamp }}"
         python app.py send_notification_to_slack ${{ github.event.issue.number }} ${{ secrets.KA_GITHUB_REPO_OWNER }} ${{ secrets.KA_GITHUB_REPO_NAME }}
         
       
