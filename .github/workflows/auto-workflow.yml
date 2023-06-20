@@ -66,8 +66,7 @@ jobs:
         SHOW_ACTIONS_URL: false
         SHOW_REF: false
         SHOW_EVENT: false
-      with:
-          thread-timestamp: ${{ github.event.issue.thread.id }}
+        THREAD_TIMESTAMP: ${{ github.event.comment.thread_id }}
 
   closeIssue:
     needs: searchKeyword
