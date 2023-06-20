@@ -7,6 +7,10 @@ on:
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
+  GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
+  GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
+  SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+  SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
 jobs:
   searchKeyword:
@@ -62,12 +66,6 @@ jobs:
         
     - name: Send App Bot Notification to Slack Thread
       if: steps.get_thread_timestamp.outputs.thread_timestamp != 'None'
-      env:
-        GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
-        GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-        SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
       run: |
         echo "KA_GITHUB_REPO_OWNER: $GITHUB_REPO_OWNER"
         echo "KA_GITHUB_REPO_NAME: $GITHUB_REPO_NAME"
