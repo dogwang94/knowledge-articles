@@ -61,6 +61,9 @@ jobs:
     - name: Debug comments
       run: echo "${{ toJson(github.event.issue.comments) }}"
       
+    - name: Debug event payload
+      run: echo "${{ toJson(github.event) }}"
+      
     - name: Extract thread_ts
       id: extract_thread_ts
       run: echo "::set-output name=thread_ts::${{ fromJson(github.event.issue.comments)[0].thread_ts }}"
