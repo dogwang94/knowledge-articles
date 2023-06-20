@@ -55,7 +55,6 @@ jobs:
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
       
     - name: Send App Bot Notification to Slack Thread
-      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       env:
         GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
         GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
