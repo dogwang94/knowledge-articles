@@ -58,11 +58,6 @@ jobs:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
     
-    - name: Extract Latest Comment Timestamp
-      id: extract_comments
-      run: |
-        echo "::set-output name=latest_comment_timestamp::${{ toJson(github.event.issue.comments[github.event.issue.comments.length - 1].timestamp) }}"
-      
     - name: Send KA Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       uses: partnerhero/action-webhook-slack-notify@v2.1.0
@@ -75,7 +70,7 @@ jobs:
         SHOW_ACTIONS_URL: false
         SHOW_REF: false
         SHOW_EVENT: false
-        SLACK_THREAD_TS: ${{ steps.extract_comments.outputs.latest_comment_timestamp }}
+        SLACK_THREAD_TS: ${{ toJson(github.event.issue.comments) }}"
     
   closeIssue:
     needs: searchKeyword
