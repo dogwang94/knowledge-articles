@@ -70,7 +70,7 @@ jobs:
         SHOW_ACTIONS_URL: false
         SHOW_REF: false
         SHOW_EVENT: false
-        SLACK_THREAD_TS: ${{ github.event.issue.comments }}
+        SLACK_THREAD_TS: ${{ github.event.issue.comments[github.event.issue.comments.length - 1].timestamp }}
     
   closeIssue:
     needs: searchKeyword
