@@ -63,11 +63,7 @@ jobs:
       
     - name: Debug event payload
       run: echo "${{ toJson(github.event) }}"
-      
-    - name: Extract thread_ts
-      id: extract_thread_ts
-      run: echo "::set-output name=thread_ts::${{ fromJson(github.event.issue.comments)[0].thread_ts }}"
-    
+       
     - name: Send KA Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       uses: partnerhero/action-webhook-slack-notify@v2.1.0
@@ -80,7 +76,7 @@ jobs:
         SHOW_ACTIONS_URL: false
         SHOW_REF: false
         SHOW_EVENT: false
-        SLACK_THREAD_TS: ${{ steps.extract_thread_ts.outputs.thread_ts }}
+        SLACK_THREAD_TS: ${{ github.event.issue.body }}
     
   closeIssue:
     needs: searchKeyword
