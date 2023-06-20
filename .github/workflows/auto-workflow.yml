@@ -59,6 +59,9 @@ jobs:
       env:
         GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
         GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
       run: |
         python app.py send_notification_to_slack ${{ github.event.issue.number }} "Notification message goes here"
         echo "Thread timestamp: ${{ env.THREAD_TS }}"
