@@ -65,7 +65,7 @@ jobs:
         (
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        SLACK_MESSAGE="*Link of Knowledge Articles: * ${{ steps.generate_message.outputs.message }}\n"
+        SLACK_MESSAGE="*Link of Knowledge Articles:\n * ${{ steps.generate_message.outputs.message }}\n"
         THREAD_TS="${{ github.event.issue.body }}"
         ICON_EMOJI=":information_desk_person:"
         curl -X POST -H "Content-type: application/json" \
