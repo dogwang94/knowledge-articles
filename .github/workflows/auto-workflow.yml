@@ -80,7 +80,7 @@ jobs:
                 \"type\": \"section\",
                 \"text\": {
                   \"type\": \"mrkdwn\",
-                  \"text\": \"*${SLACK_MESSAGE}*\"
+                  \"text\": \"${SLACK_MESSAGE}\"
                 }
               }
             ]
