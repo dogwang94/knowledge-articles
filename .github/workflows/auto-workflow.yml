@@ -84,7 +84,7 @@ jobs:
                 }
               }
             ]
-          }" \AC
+          }"
           https://slack.com/api/chat.postMessage
         ) > /dev/null 2>&1
 
