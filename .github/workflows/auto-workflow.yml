@@ -1,4 +1,3 @@
-
 name: GitHub and Slack
 
 on:
@@ -67,9 +66,7 @@ jobs:
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
         THREAD_TS=$(curl -s -X GET -H "Content-type: application/json" \
           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          THREAD_TS=$(curl -s -X GET -H "Content-type: application/json" \
-            -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-            "https://slack.com/api/conversations.replies?channel=${SLACK_CHANNEL_ID}&ts=${{ github.event.issue.id }}" | jq -r '.messages[0].thread_ts')
+          "https://slack.com/api/conversations.replies?channel=${SLACK_CHANNEL_ID}&ts=${{ github.event.issue.id }}" | jq -r '.messages[0].thread_ts')
         ICON_EMOJI=":information_desk_person:"
         curl -X POST -H "Content-type: application/json" \
           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
@@ -90,6 +87,7 @@ jobs:
           }" \
           https://slack.com/api/chat.postMessage
         ) > /dev/null 2>&1
+      
       
     # - name: Send Slack Notification
     #   if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
@@ -168,3 +166,4 @@ jobs:
 #             https://slack.com/api/chat.postMessage \
 #             -H "Authorization: Bearer ${SLACK_BOT_TOKEN}"
 
+  
