@@ -63,30 +63,30 @@ jobs:
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
         (
-        SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
-        SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
-        THREAD_TS="${{ github.event.issue.body }}"
-        ICON_EMOJI=":information_desk_person:"
-        curl -X POST -H "Content-type: application/json" \
-          -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          -d '{
-            "channel": "'"${SLACK_CHANNEL_ID}"'",
-            "text": "'"${SLACK_MESSAGE}"'",
-            "thread_ts": "'"${THREAD_TS}"'",
-            "icon_emoji": "'"${ICON_EMOJI}"'",
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*${SLACK_MESSAGE}*"
+          SLACK_BOT_TOKEN="***"
+          SLACK_CHANNEL_ID="***"
+          SLACK_MESSAGE="*Link of Knowledge Articles:*\n https://probable-dollop-19qk3nl.pages.github.io/pages/Slack_Troubleshooting_Instructions/Slack_Troubleshooting_Instructions\n"
+          THREAD_TS="1687383719.940249"
+          ICON_EMOJI=":information_desk_person:"
+          curl -X POST -H "Content-type: application/json" \
+            -H "Authorization: ***" \
+            -d "{
+              \"channel\": \"${SLACK_CHANNEL_ID}\",
+              \"text\": \"${SLACK_MESSAGE}\",
+              \"thread_ts\": \"${THREAD_TS}\",
+              \"icon_emoji\": \"${ICON_EMOJI}\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*${SLACK_MESSAGE}*\"
+                  }
                 }
-              }
-            ]
-          }' \
-          https://slack.com/api/chat.postMessage
-        ) > /dev/null 2>&1
+              ]
+            }" \
+            https://slack.com/api/chat.postMessage
+          ) > /dev/null 2>&1
       
 
     - name: Close Slack Thread
