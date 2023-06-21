@@ -101,7 +101,7 @@ jobs:
           -d "{
             \"channel\": \"${SLACK_CHANNEL_ID}\",
             \"thread_ts\": \"${THREAD_TS}\",
-            \"text\": \"*If you need further assistance, please start a new chat.\n Thank you!*\",
+            \"text\": \"\\*If you need further assistance, please start a new chat.\\n Thank you!\\*\",
             \"icon_emoji\": \"${ICON_EMOJI}\"
           }" \
           https://slack.com/api/chat.postMessage
