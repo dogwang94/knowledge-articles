@@ -62,6 +62,7 @@ jobs:
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
+        (
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
         SLACK_MESSAGE="*Link of Knowledge Articles: * \n${{ steps.generate_message.outputs.message }}\n"
