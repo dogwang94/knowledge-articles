@@ -79,11 +79,19 @@ jobs:
               \"channel\": \"${SLACK_CHANNEL_ID}\",
               \"text\": \"${SLACK_MESSAGE}\",
               \"thread_ts\": \"${THREAD_TS}\",
-              \"icon_emoji\": \"${ICON_EMOJI}\"
+              \"icon_emoji\": \"${ICON_EMOJI}\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"${SLACK_MESSAGE}\"
+                  }
+                }
+              ]
             }" \
-            https://slack.com/api/chat.postMessage | jq '.'
+           https://slack.com/api/chat.postMessage
         ) > /dev/null 2>&1
-
         
   closeIssue:
     needs: searchKeyword
