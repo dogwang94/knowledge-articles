@@ -58,15 +58,14 @@ jobs:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
     
+      
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
         (
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        THREAD_TS=$(curl -s -X GET -H "Content-type: application/json" \
-          -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          "https://slack.com/api/conversations.replies?channel=${SLACK_CHANNEL_ID}&ts=${{ github.event.issue.id }}" | jq -r '.messages[0].thread_ts')
+        THREAD_TS="${{ github.event.issue.body }}"
         ICON_EMOJI=":information_desk_person:"
         curl -X POST -H "Content-type: application/json" \
           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
@@ -87,35 +86,6 @@ jobs:
           }" \
           https://slack.com/api/chat.postMessage
         ) > /dev/null 2>&1
-      
-      
-    # - name: Send Slack Notification
-    #   if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
-    #   run: |
-    #     (
-    #     SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
-    #     SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-    #     THREAD_TS="${{ github.event.issue.body }}"
-    #     ICON_EMOJI=":information_desk_person:"
-    #     curl -X POST -H "Content-type: application/json" \
-    #       -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-    #       -d "{
-    #         \"channel\": \"${SLACK_CHANNEL_ID}\",
-    #         \"text\": \"${{ steps.generate_message.outputs.message }}\",
-    #         \"thread_ts\": \"${THREAD_TS}\",
-    #         \"icon_emoji\": \"${ICON_EMOJI}\",
-    #         \"blocks\": [
-    #           {
-    #             \"type\": \"section\",
-    #             \"text\": {
-    #               \"type\": \"mrkdwn\",
-    #               \"text\": \"${{ steps.generate_message.outputs.message }}\"
-    #             }
-    #           }
-    #         ]
-    #       }" \
-    #       https://slack.com/api/chat.postMessage
-    #     ) > /dev/null 2>&1
       
         
   closeIssue:
@@ -166,4 +136,3 @@ jobs:
 #             https://slack.com/api/chat.postMessage \
 #             -H "Authorization: Bearer ${SLACK_BOT_TOKEN}"
 
-  
