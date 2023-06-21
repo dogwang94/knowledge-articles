@@ -69,7 +69,7 @@ jobs:
       run: |
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        SLACK_MESSAGE="Link of Knowledge Articles: ${{ steps.generate_message.outputs.message }}"
+        SLACK_MESSAGE="*Link of Knowledge Articles:* \n${{ steps.generate_message.outputs.message }}\n"
         THREAD_TS="${{ github.event.issue.body }}"
         ICON_EMOJI=":information_desk_person:"
 
@@ -81,7 +81,7 @@ jobs:
             \"thread_ts\": \"${THREAD_TS}\",
             \"icon_emoji\": \"${ICON_EMOJI}\"
           }" \
-          https://slack.com/api/chat.postMessage > /dev/null
+          https://slack.com/api/chat.postMessage > /dev/null 2>&1
 
         
   closeIssue:
