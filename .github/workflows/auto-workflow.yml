@@ -67,15 +67,9 @@ jobs:
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
-        (
           SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
           SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-          # Generate the message excluding the default "Build software better, together" text
-          SLACK_MESSAGE=$(cat <<EOF
-            *Link of Knowledge Articles:*\n
-            ${{ steps.generate_message.outputs.message }}\n
-            EOF
-          )
+          SLACK_MESSAGE="*Link of Knowledge Articles:*\n${{ steps.generate_message.outputs.message }}\n"
           THREAD_TS="${{ github.event.issue.body }}"
           ICON_EMOJI=":information_desk_person:"
           curl -X POST -H "Content-type: application/json" \
