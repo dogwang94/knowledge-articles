@@ -65,8 +65,8 @@ jobs:
         (
           SLACK_BOT_TOKEN="***"
           SLACK_CHANNEL_ID="***"
-          SLACK_MESSAGE="*Link of Knowledge Articles:*\n https://probable-dollop-19qk3nl.pages.github.io/pages/Slack_Troubleshooting_Instructions/Slack_Troubleshooting_Instructions\n"
-          THREAD_TS="1687383719.940249"
+          SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
+          THREAD_TS="${{ github.event.issue.body }}"
           ICON_EMOJI=":information_desk_person:"
           curl -X POST -H "Content-type: application/json" \
             -H "Authorization: ***" \
@@ -158,4 +158,3 @@ jobs:
 #             https://slack.com/api/chat.postMessage \
 #             -H "Authorization: Bearer ${SLACK_BOT_TOKEN}"
 
-  
