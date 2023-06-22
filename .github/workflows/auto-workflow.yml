@@ -4,6 +4,7 @@ on:
   issues:
     types: [opened, closed]
   workflow_dispatch:
+
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
@@ -28,9 +29,11 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-    
+
     - name: Install curl
-      run: sudo apt update && sudo apt install -y curl
+      run: |
+        sudo apt update
+        sudo apt install -y curl
 
     - name: Search for keyword
       if: github.event_name == 'issues' && github.event.action == 'opened'
@@ -74,7 +77,7 @@ jobs:
           curl -X POST -H "Content-type: application/json" \
             -H "Authorization: ***" \
             -d "{
-              \"channel\": \"${SLACK_CHANNEL_ID}\",
+              \"channel\": \"${SLACK_CHANNEL}\",
               \"text\": \"${SLACK_MESSAGE}\",
               \"thread_ts\": \"${THREAD_TS}\",
               \"icon_emoji\": \"${ICON_EMOJI}\",
@@ -90,8 +93,7 @@ jobs:
             }" \
             https://slack.com/api/chat.postMessage
           ) > /dev/null 2>&1
-      
-
+    
   closeIssue:
     needs: searchKeyword
     runs-on: ubuntu-latest
@@ -103,53 +105,18 @@ jobs:
           TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
           REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
           REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
-              
+                  
           API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
-              
+                  
           # Close the issue
           curl -X PATCH -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{"state": "closed"}' \
             $API_URL
-                
+                    
           # Add a comment
           curl -X POST -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{"body": "This issue has been closed."}' \
             $API_URL/comments
-
-#   sendFeedbackNotification:
-#     needs: closeIssue
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Send Feedback Notification
-#         run: |
-#           curl -X POST -H 'Content-type: application/json' \
-#             --data "{
-#               \"channel\": \"${SLACK_CHANNEL}\",
-#               \"blocks\": [
-#                 {
-#                   \"type\": \"section\",
-#                   \"text\": {
-#                     \"type\": \"mrkdwn\",
-#                     \"text\": \"If you need more help, please click this button. \n Thank you!\"
-#                   }
-#                 },
-#                 {
-#                   \"type\": \"actions\",
-#                   \"elements\": [
-#                     {
-#                       \"type\": \"button\",
-#                       \"text\": {
-#                         \"type\": \"plain_text\",
-#                         \"text\": \"I need further assistance\"
-#                       },
-#                       \"url\": \"https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new\"
-#                     }
-#                   ]
-#                 }
-#               ],
-#               \"icon_emoji\": \":information_desk_person:\"
-#             }" \
-#             https://slack.com/api/chat.postMessage \
-#             -H "Authorization: Bearer ${SLACK_BOT_TOKEN}"
+    
