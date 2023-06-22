@@ -7,10 +7,6 @@ on:
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
-  GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
-  GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
-  SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-  SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
 jobs:
   searchKeyword:
@@ -51,77 +47,39 @@ jobs:
           message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
           messages+=("$message")
         done
-        # message="${messages[*]}"
-        message=$(printf "%s\n" "${messages[@]}")
+        message="${messages[*]}"
+        echo "Found message: $message"
         echo "::set-output name=message::$message"
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
-    
-      
-    - name: Send Slack Notification
-      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
-      run: |
-        (
-          SLACK_BOT_TOKEN="***"
-          SLACK_CHANNEL_ID="***"
-          SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
-          THREAD_TS="${{ github.event.issue.body }}"
-          ICON_EMOJI=":information_desk_person:"
-          curl -X POST -H "Content-type: application/json" \
-            -H "Authorization: ***" \
-            -d "{
-              \"channel\": \"${SLACK_CHANNEL_ID}\",
-              \"text\": \"${SLACK_MESSAGE}\",
-              \"thread_ts\": \"${THREAD_TS}\",
-              \"icon_emoji\": \"${ICON_EMOJI}\",
-              \"blocks\": [
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*${SLACK_MESSAGE}*\"
-                  }
-                }
-              ]
-            }" \
-            https://slack.com/api/chat.postMessage
-          ) > /dev/null 2>&1
-      
-
-#     - name: Close Slack Thread
-#       if: always()
-#       run: |
-#         (
-#         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
-#         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-#         SLACK_MESSAGE="*If you need further assistance, please start a new chat.\n Thank you!*"
-#         THREAD_TS="${{ github.event.issue.body }}"
-#         ICON_EMOJI=":information_desk_person:"
-#         curl -X POST -H "Content-type: application/json" \
-#           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-#           -d "{
-#             \"channel\": \"${SLACK_CHANNEL_ID}\",
-#             \"thread_ts\": \"${THREAD_TS}\",
-#             \"text\": \"${SLACK_MESSAGE}\",
-#             \"icon_emoji\": \"${ICON_EMOJI}\"
-#           }" \
-#           https://slack.com/api/chat.postMessage
-#         ) > /dev/null 2>&1         
-      
         
+    - name: Send KA Notification
+      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
+      uses: partnerhero/action-webhook-slack-notify@v2.1.0
+      env:
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_COLOR: ${{ job.status }}
+        SLACK_ICON_EMOJI: ":information_desk_person:"
+        SLACK_MESSAGE: "*Link of Knowledge Articles: * ${{ steps.generate_message.outputs.message }}\n"
+        SHOW_ACTIONS_URL: false
+        SHOW_REF: false
+        SHOW_EVENT: false
+
   closeIssue:
     needs: searchKeyword
     runs-on: ubuntu-latest
     steps:
       - name: Close Issue
-        uses: peter-evans/close-issue@v3
+        uses: peter-evans/close-issue@v2
         with:
           comment: |
+            The issue has been resolved and the keyword was found in these files: ${{ steps.find_files.outputs.files }}.
             Auto-closing issue-number: ${{ github.event.issue.number }}
           labels: |
             knowledge article
-            
+
 #   sendFeedbackNotification:
 #     needs: closeIssue
 #     runs-on: ubuntu-latest
@@ -157,4 +115,3 @@ jobs:
 #             }" \
 #             https://slack.com/api/chat.postMessage \
 #             -H "Authorization: Bearer ${SLACK_BOT_TOKEN}"
-
