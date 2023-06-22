@@ -89,25 +89,25 @@ jobs:
           ) > /dev/null 2>&1
       
 
-    - name: Close Slack Thread
-      if: always()
-      run: |
-        (
-        SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
-        SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        SLACK_MESSAGE="*If you need further assistance, please start a new chat.\n Thank you!*"
-        THREAD_TS="${{ github.event.issue.body }}"
-        ICON_EMOJI=":information_desk_person:"
-        curl -X POST -H "Content-type: application/json" \
-          -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          -d "{
-            \"channel\": \"${SLACK_CHANNEL_ID}\",
-            \"thread_ts\": \"${THREAD_TS}\",
-            \"text\": \"${SLACK_MESSAGE}\",
-            \"icon_emoji\": \"${ICON_EMOJI}\"
-          }" \
-          https://slack.com/api/chat.postMessage
-        ) > /dev/null 2>&1         
+#     - name: Close Slack Thread
+#       if: always()
+#       run: |
+#         (
+#         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
+#         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
+#         SLACK_MESSAGE="*If you need further assistance, please start a new chat.\n Thank you!*"
+#         THREAD_TS="${{ github.event.issue.body }}"
+#         ICON_EMOJI=":information_desk_person:"
+#         curl -X POST -H "Content-type: application/json" \
+#           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+#           -d "{
+#             \"channel\": \"${SLACK_CHANNEL_ID}\",
+#             \"thread_ts\": \"${THREAD_TS}\",
+#             \"text\": \"${SLACK_MESSAGE}\",
+#             \"icon_emoji\": \"${ICON_EMOJI}\"
+#           }" \
+#           https://slack.com/api/chat.postMessage
+#         ) > /dev/null 2>&1         
       
         
   closeIssue:
