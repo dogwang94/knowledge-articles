@@ -14,6 +14,13 @@ env:
   SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
 jobs:
+  installCurl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install curl
+        run: sudo apt update && sudo apt install -y curl
+        
   searchKeyword:
     runs-on: ubuntu-latest
 
@@ -29,11 +36,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-
-    - name: Install curl
-      run: |
-        sudo apt update
-        sudo apt install -y curl
 
     - name: Search for keyword
       if: github.event_name == 'issues' && github.event.action == 'opened'
