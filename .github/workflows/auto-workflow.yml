@@ -59,6 +59,7 @@ jobs:
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
         
     - name: Send Slack Notification
+      id: sendSlackNotification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
         (
@@ -87,26 +88,32 @@ jobs:
             https://slack.com/api/chat.postMessage
           ) > /dev/null 2>&1
 
-    - name: Close Issue
-      run: |
-        ISSUE_NUMBER="${{ github.event.issue.number }}"
-        TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
-        REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
-        REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
-            
-        API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
-            
-        # Close the issue
-        curl -X PATCH -H "Authorization: Bearer $TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          -d '{"state": "closed"}' \
-          $API_URL
+
+  closeIssue:
+    needs: searchKeyword
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Close Issue
+        id: closeIssue
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
+          REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
+          REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
               
-        # Add a comment
-        curl -X POST -H "Authorization: Bearer $TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          -d '{"body": "This issue has been closed."}' \
-          $API_URL/comments
+          API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
+              
+          # Close the issue
+          curl -X PATCH -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"state": "closed"}' \
+            $API_URL
+                
+          # Add a comment
+          curl -X POST -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"body": "This issue has been closed."}' \
+            $API_URL/comments
 
 #   sendFeedbackNotification:
 #     needs: closeIssue
