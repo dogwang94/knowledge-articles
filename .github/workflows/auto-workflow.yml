@@ -4,6 +4,7 @@ on:
   issues:
     types: [opened, closed]
   workflow_dispatch:
+
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
@@ -14,6 +15,7 @@ env:
 
 jobs:
   searchKeyword:
+    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
 
     steps:
@@ -30,18 +32,16 @@ jobs:
         pip install -r requirements.txt
 
     - name: Search for keyword
-      if: github.event_name == 'issues' && github.event.action == 'opened'
       id: search
       run: |
         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
         echo "Searching for directories name containing $keyword"
-        readarray -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
+        mapfile -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
 
     - name: Generate Slack Message
       id: generate_message
-      if: github.event_name == 'issues' && github.event.action == 'opened'
       run: |
         formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
         echo "The link of knowledge articles:"
@@ -57,10 +57,9 @@ jobs:
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
-    
-      
+
     - name: Send Slack Notification
-      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
+      if: steps.search.outputs.dirnames != ''
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
@@ -91,10 +90,9 @@ jobs:
             ]
           }' \
           https://slack.com/api/chat.postMessage
-      
-      
 
   closeIssue:
+    if: github.event_name == 'issues' && github.event.action == 'closed'
     needs: searchKeyword
     runs-on: ubuntu-latest
     steps: 
@@ -119,4 +117,3 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             -d '{"body": "This issue has been closed."}' \
             $API_URL/comments
-    
