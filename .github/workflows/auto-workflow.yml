@@ -35,7 +35,7 @@ jobs:
       run: |
         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
         echo "Searching for directories name containing $keyword"
-        mapfile -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
+        readarray -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
 
@@ -61,32 +61,32 @@ jobs:
       
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
+        THREAD_TS: ${{ github.event.issue.body }}
+        ICON_EMOJI: ":information_desk_person:"
       run: |
-        (
-          SLACK_BOT_TOKEN="***"
-          SLACK_CHANNEL_ID="***"
-          SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
-          THREAD_TS="${{ github.event.issue.body }}"
-          ICON_EMOJI=":information_desk_person:"
-          curl -X POST -H "Content-type: application/json" \
-            -H "Authorization: ***" \
-            -d "{
-              \"channel\": \"${SLACK_CHANNEL_ID}\",
-              \"text\": \"${SLACK_MESSAGE}\",
-              \"thread_ts\": \"${THREAD_TS}\",
-              \"icon_emoji\": \"${ICON_EMOJI}\",
-              \"blocks\": [
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*${SLACK_MESSAGE}*\"
-                  }
+        curl -X POST -H "Content-type: application/json" \
+          -H "Authorization: $SLACK_BOT_TOKEN" \
+          -d '{
+            "channel": "'"$SLACK_CHANNEL_ID"'",
+            "text": "'"$SLACK_MESSAGE"'",
+            "thread_ts": "'"$THREAD_TS"'",
+            "icon_emoji": "'"$ICON_EMOJI"'",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "'"$SLACK_MESSAGE"'"
                 }
-              ]
-            }" \
-            https://slack.com/api/chat.postMessage
-          ) > /dev/null 2>&1
+              }
+            ]
+          }' \
+          https://slack.com/api/chat.postMessage
+      
 
   closeIssue:
     needs: searchKeyword
