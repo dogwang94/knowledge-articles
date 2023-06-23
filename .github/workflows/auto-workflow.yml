@@ -92,7 +92,6 @@ jobs:
           https://slack.com/api/chat.postMessage
 
   closeIssue:
-    if: github.event_name == 'issues' && github.event.action == 'closed'
     needs: searchKeyword
     runs-on: ubuntu-latest
     steps: 
