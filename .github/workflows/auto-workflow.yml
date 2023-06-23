@@ -35,7 +35,7 @@ jobs:
       run: |
         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
         echo "Searching for directories name containing $keyword"
-        mapfile -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
+        readarray -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
 
