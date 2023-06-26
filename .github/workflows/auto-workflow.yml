@@ -114,5 +114,5 @@ jobs:
           # Add a comment
           curl -X POST -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{"body": "This issue has been closed."}' \
+            -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
             $API_URL/comments
