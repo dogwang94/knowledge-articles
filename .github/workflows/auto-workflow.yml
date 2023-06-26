@@ -2,7 +2,7 @@ name: GitHub and Slack
 
 on:
   issues:
-    types: [opened, closed]
+    types: [opened]
   workflow_dispatch:
 # env:
 #   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -55,37 +55,33 @@ jobs:
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
 
     - name: Send Slack Notification
-      if: steps.search.outputs.dirnames != ''
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-        SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
-        THREAD_TS: ${{ github.event.issue.body }}
-        ICON_EMOJI: ":information_desk_person:"
+      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
       run: |
-        echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
-        echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
-        echo "SLACK_MESSAGE: $SLACK_MESSAGE"
-        echo "THREAD_TS: $THREAD_TS"
-        echo "ICON_EMOJI: $ICON_EMOJI"
-        curl -X POST -H "Content-type: application/json" \
-          -H "Authorization: $SLACK_BOT_TOKEN" \
-          -d '{
-            "channel": "'"$SLACK_CHANNEL_ID"'",
-            "text": "'"$SLACK_MESSAGE"'",
-            "thread_ts": "'"$THREAD_TS"'",
-            "icon_emoji": "'"$ICON_EMOJI"'",
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "'"$SLACK_MESSAGE"'"
+        (
+          SLACK_BOT_TOKEN="***"
+          SLACK_CHANNEL_ID="***"
+          SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
+          THREAD_TS="${{ github.event.issue.body }}"
+          ICON_EMOJI=":information_desk_person:"
+          curl -X POST -H "Content-type: application/json" \
+            -H "Authorization: ***" \
+            -d "{
+              \"channel\": \"${SLACK_CHANNEL_ID}\",
+              \"text\": \"${SLACK_MESSAGE}\",
+              \"thread_ts\": \"${THREAD_TS}\",
+              \"icon_emoji\": \"${ICON_EMOJI}\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*${SLACK_MESSAGE}*\"
+                  }
                 }
-              }
-            ]
-          }' \
-          https://slack.com/api/chat.postMessage
+              ]
+            }" \
+            https://slack.com/api/chat.postMessage
+          ) > /dev/null 2>&1
 
     - name: Close Slack Thread
       if: always()
