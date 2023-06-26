@@ -70,15 +70,28 @@ jobs:
   closeIssue:
     needs: searchKeyword
     runs-on: ubuntu-latest
-    steps:
+    steps: 
       - name: Close Issue
-        uses: peter-evans/close-issue@v2
-        with:
-          comment: |
-            The issue has been resolved and the keyword was found in these files: ${{ steps.find_files.outputs.files }}.
-            Auto-closing issue-number: ${{ github.event.issue.number }}
-          labels: |
-            knowledge article
+        id: closeIssue
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
+          REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
+          REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
+                  
+          API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
+                  
+          # Close the issue
+          curl -X PATCH -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"state": "closed"}' \
+            $API_URL
+                    
+          # Add a comment
+          curl -X POST -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
+            $API_URL/comments
 
 
 
