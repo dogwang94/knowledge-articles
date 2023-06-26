@@ -99,6 +99,15 @@ jobs:
             \"thread_ts\": \"${THREAD_TS}\",
             \"text\": \"${SLACK_MESSAGE}\",
             \"icon_emoji\": \"${ICON_EMOJI}\"
+            \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*${SLACK_MESSAGE}*\"
+                  }
+                }
+              ]
           }" \
           https://slack.com/api/chat.postMessage
         ) > /dev/null 2>&1   
