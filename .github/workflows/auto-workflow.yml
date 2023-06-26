@@ -100,7 +100,7 @@ jobs:
                 \"type\": \"section\",
                 \"text\": {
                   \"type\": \"mrkdwn\",
-                  \"text\": \"*If you need further assistance, please start a new chat.\n Thank you!*_\"
+                  \"text\": \"*If you need further assistance, please start a new chat.*\n *Thank you!*\"
                 }
               }
             ]
