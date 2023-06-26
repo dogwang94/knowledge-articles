@@ -74,7 +74,7 @@ jobs:
                 \"type\": \"section\",
                 \"text\": {
                   \"type\": \"mrkdwn\",
-                  \"text\": \"*${SLACK_MESSAGE}*\"
+                  \"text\": \"*Link of Knowledge Articles:*\n _${{ steps.generate_message.outputs.message }}_\"
                 }
               }
             ]
@@ -100,7 +100,7 @@ jobs:
                 \"type\": \"section\",
                 \"text\": {
                   \"type\": \"mrkdwn\",
-                  \"text\": \"*${SLACK_MESSAGE}*\"
+                  \"text\": \"*If you need further assistance, please start a new chat.\n Thank you!*_\"
                 }
               }
             ]
