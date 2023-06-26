@@ -4,18 +4,12 @@ on:
   issues:
     types: [opened, closed]
   workflow_dispatch:
-
 env:
   SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
-  GITHUB_REPO_OWNER: ${{ secrets.KA_GITHUB_REPO_OWNER }}
-  GITHUB_REPO_NAME: ${{ secrets.KA_GITHUB_REPO_NAME }}
-  SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-  SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
 
 jobs:
   searchKeyword:
-    if: github.event_name == 'issues' && github.event.action == 'opened'
     runs-on: ubuntu-latest
 
     steps:
@@ -32,16 +26,18 @@ jobs:
         pip install -r requirements.txt
 
     - name: Search for keyword
+      if: github.event_name == 'issues' && github.event.action == 'opened'
       id: search
       run: |
         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
         echo "Searching for directories name containing $keyword"
-        mapfile -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
+        readarray -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
 
     - name: Generate Slack Message
       id: generate_message
+      if: github.event_name == 'issues' && github.event.action == 'opened'
       run: |
         formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
         echo "The link of knowledge articles:"
@@ -51,68 +47,39 @@ jobs:
           message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
           messages+=("$message")
         done
-        # message="${messages[*]}"
-        message=$(printf "%s\n" "${messages[@]}")
+        message="${messages[*]}"
+        echo "Found message: $message"
         echo "::set-output name=message::$message"
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
-
-    - name: Send Slack Notification
-      if: steps.search.outputs.dirnames != ''
+        
+    - name: Send KA Notification
+      if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
+      uses: partnerhero/action-webhook-slack-notify@v2.1.0
       env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-        SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
-        THREAD_TS: ${{ github.event.issue.body }}
-        ICON_EMOJI: ":information_desk_person:"
-      run: |
-        echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
-        echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
-        echo "SLACK_MESSAGE: $SLACK_MESSAGE"
-        echo "THREAD_TS: $THREAD_TS"
-        echo "ICON_EMOJI: $ICON_EMOJI"
-        curl -X POST -H "Content-type: application/json" \
-          -H "Authorization: $SLACK_BOT_TOKEN" \
-          -d '{
-            "channel": "'"$SLACK_CHANNEL_ID"'",
-            "text": "'"$SLACK_MESSAGE"'",
-            "thread_ts": "'"$THREAD_TS"'",
-            "icon_emoji": "'"$ICON_EMOJI"'",
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "'"$SLACK_MESSAGE"'"
-                }
-              }
-            ]
-          }' \
-          https://slack.com/api/chat.postMessage
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_COLOR: ${{ job.status }}
+        SLACK_ICON_EMOJI: ":information_desk_person:"
+        SLACK_MESSAGE: "*Link of Knowledge Articles: * ${{ steps.generate_message.outputs.message }}\n"
+        SHOW_ACTIONS_URL: false
+        SHOW_REF: false
+        SHOW_EVENT: false
 
   closeIssue:
     needs: searchKeyword
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - name: Close Issue
-        id: closeIssue
-        run: |
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-          TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
-          REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
-          REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
-                  
-          API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
-                  
-          # Close the issue
-          curl -X PATCH -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{"state": "closed"}' \
-            $API_URL
-                    
-          # Add a comment
-          curl -X POST -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
-            $API_URL/comments
+        uses: peter-evans/close-issue@v2
+        with:
+          comment: |
+            The issue has been resolved and the keyword was found in these files: ${{ steps.find_files.outputs.files }}.
+            Auto-closing issue-number: ${{ github.event.issue.number }}
+          labels: |
+            knowledge article
+
+
+
+    
