@@ -82,7 +82,6 @@ jobs:
           https://slack.com/api/chat.postMessage
       
     - name: Close Slack Thread
-      if: always()
       run: |
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
@@ -95,18 +94,19 @@ jobs:
             \"channel\": \"${SLACK_CHANNEL_ID}\",
             \"thread_ts\": \"${THREAD_TS}\",
             \"text\": \"${SLACK_MESSAGE}\",
-            \"icon_emoji\": \"${ICON_EMOJI}\"
+            \"icon_emoji\": \"${ICON_EMOJI}\",
             \"blocks\": [
-                {
-                  \"type\": \"section\",
-                  \"text\": {
-                    \"type\": \"mrkdwn\",
-                    \"text\": \"*${SLACK_MESSAGE}*\"
-                  }
+              {
+                \"type\": \"section\",
+                \"text\": {
+                  \"type\": \"mrkdwn\",
+                  \"text\": \"*${SLACK_MESSAGE}*\"
                 }
-              ]
+              }
+            ]
           }" \
-          https://slack.com/api/chat.postMessage      
+          https://slack.com/api/chat.postMessage
+        
 
   closeIssue:
     needs: searchKeyword
@@ -134,5 +134,3 @@ jobs:
             -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
             $API_URL/comments
 
-
-  
