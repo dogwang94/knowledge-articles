@@ -53,56 +53,39 @@ jobs:
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
-        
+
     - name: Send Slack Notification
+      if: steps.search.outputs.dirnames != ''
       env:
-        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-        CHANNEL: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
         THREAD_TS: ${{ github.event.issue.body }}
-        MESSAGE: ${{ steps.generate_message.outputs.message }}
+        ICON_EMOJI: ":information_desk_person:"
       run: |
-        curl -X POST \
-          -H "Authorization: Bearer $SLACK_TOKEN" \
-          -H "Content-type: application/json" \
+        echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
+        echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
+        echo "SLACK_MESSAGE: $SLACK_MESSAGE"
+        echo "THREAD_TS: $THREAD_TS"
+        echo "ICON_EMOJI: $ICON_EMOJI"
+        curl -X POST -H "Content-type: application/json" \
+          -H "Authorization: $SLACK_BOT_TOKEN" \
           -d '{
-            "channel": "'"$CHANNEL"'",
+            "channel": "'"$SLACK_CHANNEL_ID"'",
+            "text": "'"$SLACK_MESSAGE"'",
             "thread_ts": "'"$THREAD_TS"'",
-            "text": "'"$MESSAGE"'"
+            "icon_emoji": "'"$ICON_EMOJI"'",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "'"$SLACK_MESSAGE"'"
+                }
+              }
+            ]
           }' \
           https://slack.com/api/chat.postMessage
-
-#     - name: Send Slack Notification
-#       if: steps.search.outputs.dirnames != ''
-#       env:
-#         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-#         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-#         SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
-#         THREAD_TS: ${{ github.event.issue.body }}
-#         ICON_EMOJI: ":information_desk_person:"
-#       run: |
-#         echo "SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN"
-#         echo "SLACK_CHANNEL_ID: $SLACK_CHANNEL_ID"
-#         echo "SLACK_MESSAGE: $SLACK_MESSAGE"
-#         echo "THREAD_TS: $THREAD_TS"
-#         echo "ICON_EMOJI: $ICON_EMOJI"
-#         curl -X POST -H "Content-type: application/json" \
-#           -H "Authorization: $SLACK_BOT_TOKEN" \
-#           -d '{
-#             "channel": "'"$SLACK_CHANNEL_ID"'",
-#             "text": "'"$SLACK_MESSAGE"'",
-#             "thread_ts": "'"$THREAD_TS"'",
-#             "icon_emoji": "'"$ICON_EMOJI"'",
-#             "blocks": [
-#               {
-#                 "type": "section",
-#                 "text": {
-#                   "type": "mrkdwn",
-#                   "text": "'"$SLACK_MESSAGE"'"
-#                 }
-#               }
-#             ]
-#           }' \
-#           https://slack.com/api/chat.postMessage
 
   closeIssue:
     needs: searchKeyword
