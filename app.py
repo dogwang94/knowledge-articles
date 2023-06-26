@@ -9,6 +9,7 @@ import requests
 import json
 import sys
 import logging
+import time
 
 
 env_path = Path('.') / '.env'
@@ -20,12 +21,13 @@ app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)  # Set the desired log level
 
 # Initialize the Github API client
-github_token = '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'
+github_token = os.environ["GITHUB_TOKEN"]
 github_client = Github(github_token)
 github_repo_owner = os.environ["GITHUB_REPO_OWNER"]
 github_repo_name = os.environ["GITHUB_REPO_NAME"]
 github_url = f"https://api.github.com/repos/{github_repo_owner}/{github_repo_name}/issues"
 # app.logger.debug("github_token: %s", github_token)
+# app.logger.debug("github_url: %s", github_url)
 
 # Define the Slack Bot token and the GitHub API token
 slack_bot_token = os.environ["SLACK_BOT_TOKEN"]
@@ -45,7 +47,7 @@ slack_client = slack_sdk.WebClient(token=slack_bot_token)
 # )
 
 BOT_ID = slack_client.api_call("auth.test")['user_id']
-app.logger.debug("BOT_ID: %s", BOT_ID)
+# app.logger.debug("BOT_ID: %s", BOT_ID)
 
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
@@ -69,22 +71,23 @@ def slack_events():
             user_id = request_data["event"]["user"]
             channel_id = request_data["event"]["channel"]
             message_text = request_data["event"]["text"]
-            # bot_name = request_data["event"]["is_bot"]
-            app.logger.debug("user_id: %s", user_id)
-            app.logger.debug("channel_id: %s", channel_id)
-            app.logger.debug("message_text: %s", message_text)
-            # app.logger.debug("bot_name: %s", bot_name)
+     
+            # app.logger.debug("user_id: %s", user_id)
+            # app.logger.debug("channel_id: %s", channel_id)
+            # app.logger.debug("message_text: %s", message_text)
             
             # Check if the message is from the specified channel   
             if channel_id == slack_channel_id and user_id != BOT_ID:
                 # Check if the message is from GitHub
+                
+                app.logger.debug("from github: %s", is_message_from_github(request_data["event"]))
                                  
                 if not is_message_from_github(request_data["event"]):
                     # Check if the bot has already responded
                     if "thread_ts" not in request_data["event"]:
                         # Start a new thread for the user's response
                         thread_ts_initial = request_data["event"]["ts"]
-                        app.logger.debug("thread_ts_initial: %s", thread_ts_initial)
+                        # app.logger.debug("thread_ts_initial: %s", thread_ts_initial)
                         # Send a message to the channel asking for a keyword
                         slack_message_thread(f"*I am KA_Support_Bot.* \n *Please provide me a keyword for searching*", channel_id, thread_ts_initial, ":information_desk_person:")
 
@@ -94,37 +97,38 @@ def slack_events():
             channel_id = request_data["event"]["channel"]
             message_text = request_data["event"]["text"]
             thread_ts = request_data["event"]["thread_ts"]
-
             app.logger.debug("message_text: %s", message_text)
-            app.logger.debug("thread_ts: %s", thread_ts)
+            
             # Check if the message is a response to the bot's initial message
             if thread_ts and message_text and user_id != BOT_ID:
                 # Create a GitHub issue with the keyword as the title
                 github_title = message_text.strip()
+                github_body = thread_ts
+                # app.logger.debug("github_body: %s", github_body)
+                
                 github_headers = {
                     "Authorization": "Bearer {}".format(github_token),
                     "Content-Type": "application/json"
                 }
                 github_data = {
-                    "title": github_title
+                    "title": github_title,
+                    "body": github_body
                 }
+                
+                
                 github_response = requests.post(github_url, headers=github_headers, data=json.dumps(github_data))
 
+                app.logger.debug("github_response: %s", github_response.json)
+                # app.logger.debug("github_response status: %s", github_response.json)
+                               
+                # Send a message to the thread confirming the issue creation
                 if github_response.ok:
-                    # Send a message to the thread confirming the issue creation
-                    response = requests.get(f'https://slack.com/api/conversations.replies?channel={channel_id}&ts={thread_ts}', headers={'Authorization': f'Bearer {slack_bot_token}'})
-                    response_json = response.json()
-
-                    if 'messages' in response_json and response_json['messages']:
-                        gh_thread_ts = response_json['messages'][0]['ts']  # Assuming the thread is the first message in the replies
-                        slack_message_thread(f"*Searching for keyword \"{github_title}\"...*", channel_id, gh_thread_ts, ":information_desk_person:")
-                    else:
-                        # Handle the case when the API response does not contain messages
-                        app.logger.error("Failed to retrieve thread timestamp from Slack API response: %s", response_json)
+                    slack_message_thread(f"*Searching for keyword \"{github_title}\"...*", channel_id, thread_ts, ":information_desk_person:")
                 else:
-                    # Handle the case when creating the GitHub issue fails
-                    app.logger.error("Error creating GitHub issue: %s", github_response.text)
+                    slack_message_thread("Error creating issue", channel_id, thread_ts, ":information_desk_person:")
 
+                # Close the message thread
+                # close_message_thread(channel_id, thread_ts)
     # Return a response
     return "", 200
 
@@ -168,13 +172,39 @@ def is_message_from_github(message):
                     return True
     return False
 
-def send_notification_to_slack(issue_number, message):
-    issue = github_client.get_repo('your/repository').get_issue(issue_number)
-    thread_ts = issue.comments[0].body.split('\n')[0].split(': ')[1]  # Assuming thread timestamp is in the format "Thread timestamp: <timestamp>" 
-    os.environ['THREAD_TS'] = thread_ts
-    # Rest of your notification sending logic
-    return thread_ts
+# Function to update the message and close the thread
+# def close_message_thread(channel_id, thread_ts):
+#     MAX_RETRIES = 3
+#     RETRY_DELAY_SECONDS = 1
     
+#     MESSAGE_TEXT = "If you need further assistance, please start a new chat. \nThank you!"
+#     ICON_EMOJI = ":information_desk_person:"
+#     url = f"https://slack.com/api/chat.postMessage"
+#     headers = {
+#         "Content-Type": "application/json; charset=utf-8",
+#         "Authorization": f"Bearer {slack_bot_token}"
+#     }
+#     data = {
+#         "channel": channel_id,
+#         "ts": thread_ts,
+#         "text": MESSAGE_TEXT,
+#         "icon_emoji": ICON_EMOJI
+#     }
+    
+#     response = None
+#     for attempt in range(MAX_RETRIES):
+#         response = requests.post(url, headers=headers, json=data)
+#         app.logger.debug(f"Slack API Response: {response.json()}")
+#         if response.ok:
+#             break
+#         else:
+#             app.logger.debug(f"Error updating message thread. Retry attempt {attempt + 1}")
+#             time.sleep(RETRY_DELAY_SECONDS)
+
+#     if response.ok:
+#         app.logger.debug("Message thread closed successfully.")
+#     else:
+#         app.logger.debug("Error closing message thread.")
 
 @app.route("/", methods=["GET", "POST"])
 def index():   
