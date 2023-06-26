@@ -86,7 +86,6 @@ jobs:
     - name: Close Slack Thread
       if: always()
       run: |
-        (
         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
         SLACK_MESSAGE="*If you need further assistance, please start a new chat.\n Thank you!*"
@@ -109,8 +108,7 @@ jobs:
                 }
               ]
           }" \
-          https://slack.com/api/chat.postMessage
-        ) > /dev/null 2>&1   
+          https://slack.com/api/chat.postMessage      
 
   closeIssue:
     needs: searchKeyword
