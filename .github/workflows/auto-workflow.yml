@@ -25,16 +25,30 @@ jobs:
       run: |
         pip install -r requirements.txt
 
+#     - name: Search for keyword
+#       if: github.event_name == 'issues' && github.event.action == 'opened'
+#       id: search
+#       run: |
+#         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
+#         echo "Searching for directories name containing $keyword"
+#         readarray -t dirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages/*/*')"
+#         echo "Found directories: ${dirs[@]}"
+#         echo "::set-output name=dirnames::${dirs[@]}"
+
     - name: Search for keyword
-      if: github.event_name == 'issues' && github.event.action == 'opened'
       id: search
       run: |
-        keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
-        echo "Searching for directories name containing $keyword"
-        readarray -t dirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages/*/*')"
+        keywords=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
+        readarray -t keywordArray <<< "$(tr ', ' '\n' <<< "$keywords")"
+        dirs=()
+        for keyword in "${keywordArray[@]}"; do
+          echo "Searching for directories containing keyword: $keyword"
+          readarray -t matchingDirs <<< "$(find .pages -type d -iname "*$keyword*" -not -path '.pages/*/*')"
+          dirs+=("${matchingDirs[@]}/n")
+        done
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
-
+          
     - name: Generate Slack Message
       id: generate_message
       if: github.event_name == 'issues' && github.event.action == 'opened'
