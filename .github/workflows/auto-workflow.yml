@@ -55,21 +55,21 @@ jobs:
       if: github.event_name == 'issues' && github.event.action == 'opened'
       run: |
         formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
-        echo "The link of knowledge articles:"
+        echo "The links to knowledge articles:"
         messages=()
         IFS=$'\n' read -r -a dirs_array <<< "$formatted_dirs"
-        for dir in $formatted_dirs; do
+        for dir in "${dirs_array[@]}"; do
           dir=$(basename "$dir" | sed 's/\"//g')
           message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
-          messages+=("$message")
+          messages+=("$message"$'\n')
         done
-        
-        message=$(IFS=", "; echo "${messages[*]}")
+        message=$(printf '%s' "${messages[@]}")
         echo "Found message: $message"
         echo "::set-output name=message::$message"
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
+      
 
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened' && steps.search.outputs.dirnames != ''
