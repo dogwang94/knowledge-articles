@@ -45,10 +45,12 @@ jobs:
           fi
         done
         dirs=("${uniqueDirs[@]}")
-        echo "Found directories:"
-        printf '%s\n' "${dirs[@]}"
-        echo "${dirs[@]}" > output.txt
-        echo "::set-output name=dirnames::$(cat output.txt)"
+        echo "Found directories: ${dirs[@]}"
+        echo "::set-output name=dirnames::${dirs[@]}"
+        # echo "Found directories:"
+        # printf '%s\n' "${dirs[@]}"
+        # echo "${dirs[@]}" > output.txt
+        # echo "::set-output name=dirnames::$(cat output.txt)"
 
     - name: Generate Slack Message
       id: generate_message
