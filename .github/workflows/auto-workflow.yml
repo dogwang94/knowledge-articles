@@ -34,23 +34,17 @@ jobs:
         for keyword in "${keywordArray[@]}"; do
           echo "Searching for directories containing keyword: $keyword"
           readarray -t matchingDirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages' -not -path './pages/*/*')"
-          dirs+=("${matchingDirs[@]}"$'\n')
+          for dir in "${matchingDirs[@]}"; do
+            dir=$(basename "$dir")
+            if [[ ! " ${dirs[@]} " =~ " $dir " ]]; then
+              dirs+=("$dir")
+            fi
+          done
         done
-
-        # Remove duplicates
-        uniqueDirs=()
-        for dir in "${dirs[@]}"; do
-          if [[ ! " ${uniqueDirs[@]} " =~ " $dir " ]]; then
-            uniqueDirs+=("$dir")
-          fi
-        done
-        dirs=("${uniqueDirs[@]}")
         echo "Found directories: ${dirs[@]}"
-        echo "::set-output name=dirnames::${dirs[@]}"
-        # echo "Found directories:"
-        # printf '%s\n' "${dirs[@]}"
-        # echo "${dirs[@]}" > output.txt
-        # echo "::set-output name=dirnames::$(cat output.txt)"
+        echo "${dirs[@]}" > output.txt
+        echo "::set-output name=dirnames::$(cat output.txt)"
+      
 
     - name: Generate Slack Message
       id: generate_message
