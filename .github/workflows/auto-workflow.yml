@@ -36,8 +36,15 @@ jobs:
           readarray -t matchingDirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages' -not -path './pages/*/*')"
           dirs+=("${matchingDirs[@]}"$'\n')
         done
+        
         # Remove duplicates
-        dirs=($(echo "${dirs[@]}" | awk '!seen[$0]++'))
+        uniqueDirs=()
+        for dir in "${dirs[@]}"; do
+          if [[ ! " ${uniqueDirs[@]} " =~ " $dir " ]]; then
+            uniqueDirs+=("$dir")
+          fi
+        done
+        dirs=("${uniqueDirs[@]}")
         echo "Found directories:"
         printf '%s\n' "${dirs[@]}"
         echo "${dirs[@]}" > output.txt
