@@ -36,7 +36,7 @@ jobs:
           readarray -t matchingDirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages' -not -path './pages/*/*')"
           dirs+=("${matchingDirs[@]}"$'\n')
         done
-        
+
         # Remove duplicates
         uniqueDirs=()
         for dir in "${dirs[@]}"; do
@@ -57,12 +57,14 @@ jobs:
         formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
         echo "The link of knowledge articles:"
         messages=()
+        IFS=$'\n' read -r -a dirs_array <<< "$formatted_dirs"
         for dir in $formatted_dirs; do
           dir=$(basename "$dir" | sed 's/\"//g')
           message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
           messages+=("$message")
         done
-        message="${messages[*]}"
+        
+        message=$(IFS=", "; echo "${messages[*]}")
         echo "Found message: $message"
         echo "::set-output name=message::$message"
       env:
