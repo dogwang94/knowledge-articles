@@ -61,9 +61,7 @@ jobs:
         message=$(printf '%s\n' "${messages[@]}")
         echo "Found message: $message"
         echo "::set-output name=message::$message"
-      env:
-        pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
-        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
+      
       
 
     - name: Send Slack Notification
