@@ -43,7 +43,7 @@ jobs:
         dirs=()
         for keyword in "${keywordArray[@]}"; do
           echo "Searching for directories containing keyword: $keyword"
-          readarray -t matchingDirs <<< "$(find .pages -type d -iname "*$keyword*" -not -path '.pages/*/*')"
+          readarray -t matchingDirs <<< "$(find ./pages -type d -iname "*$keyword*" -not -path '.pages/*/*')"
           dirs+=("${matchingDirs[@]}/n")
         done
         echo "Found directories: ${dirs[@]}"
