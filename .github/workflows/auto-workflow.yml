@@ -31,7 +31,7 @@ jobs:
       run: |
         keyword=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
         echo "Searching for directories name containing $keyword"
-        readarray -t dirs <<< "$(find . -iname "*$keyword*" -type d -path '*/pages/*' -print0 | xargs -0)"
+        readarray -t dirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages/*/*')"
         echo "Found directories: ${dirs[@]}"
         echo "::set-output name=dirnames::${dirs[@]}"
 
@@ -62,52 +62,93 @@ jobs:
         SLACK_MESSAGE="*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}\n"
         THREAD_TS="${{ github.event.issue.body }}"
         ICON_EMOJI=":information_desk_person:"
-        curl -X POST -H "Content-type: application/json" \
-          -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          -d "{
-            \"channel\": \"${SLACK_CHANNEL_ID}\",
-            \"text\": \"${SLACK_MESSAGE}\",
-            \"thread_ts\": \"${THREAD_TS}\",
-            \"icon_emoji\": \"${ICON_EMOJI}\",
-            \"blocks\": [
-              {
-                \"type\": \"section\",
-                \"text\": {
-                  \"type\": \"mrkdwn\",
-                  \"text\": \"*Link of Knowledge Articles:*\n _${{ steps.generate_message.outputs.message }}_\"
-                }
-              }
-            ]
-          }" \
-          https://slack.com/api/chat.postMessage
+        GITHUB_ISSUE_URL="https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
       
-    - name: Close Slack Thread
-      run: |
-        SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
-        SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
-        SLACK_MESSAGE="*If you need further assistance, please start a new chat.\n Thank you!*"
-        THREAD_TS="${{ github.event.issue.body }}"
-        ICON_EMOJI=":information_desk_person:"
-        curl -X POST -H "Content-type: application/json" \
+        curl -X POST -H "Content-type: application/json; charset=utf-8" \
           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
-          -d "{
-            \"channel\": \"${SLACK_CHANNEL_ID}\",
-            \"thread_ts\": \"${THREAD_TS}\",
-            \"text\": \"${SLACK_MESSAGE}\",
-            \"icon_emoji\": \"${ICON_EMOJI}\",
-            \"blocks\": [
+          -d '{
+            "channel": "'"${SLACK_CHANNEL_ID}"'",
+            "text": "'"${SLACK_MESSAGE}"'",
+            "thread_ts": "'"${THREAD_TS}"'",
+            "icon_emoji": "'"${ICON_EMOJI}"'",
+            "blocks": [
               {
-                \"type\": \"section\",
-                \"text\": {
-                  \"type\": \"mrkdwn\",
-                  \"text\": \"*If you need further assistance, please start a new chat.*\n *Thank you!*\"
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Link of Knowledge Articles:*\n ${{ steps.generate_message.outputs.message }}"
                 }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "I need further assistance"
+                    },
+                    "url": "'"${GITHUB_ISSUE_URL}"'"
+                  }
+                ]
               }
             ]
-          }" \
-          https://slack.com/api/chat.postMessage
-        
-
+          }' \
+          "https://slack.com/api/chat.postMessage"
+      
+      
+        # GITHUB_ISSUE_URL="https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
+        # curl -X POST -H "Content-type: application/json; charset=utf-8" \
+        #   -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+        #   -d '{
+        #     "channel": "'"${SLACK_CHANNEL_ID}"'",
+        #     "thread_ts": "'"${THREAD_TS}"'",
+        #     "blocks": [
+        #       {
+        #         "type": "actions",
+        #         "elements": [
+        #           {
+        #             "type": "button",
+        #             "text": {
+        #               "type": "plain_text",
+        #               "text": "I need further assistance"
+        #             },
+        #             "url": "'"${GITHUB_ISSUE_URL}"'"
+        #           }
+        #         ]
+        #       }
+        #     ]
+        #   }' \
+        #   https://slack.com/api/chat.postMessage
+          
+          
+        # PAYLOAD=$(cat <<EOF
+        #   {
+        #     "channel": "${SLACK_CHANNEL_ID}",
+        #     "blocks": [
+        #       {
+        #         "type": "actions",
+        #         "elements": [
+        #           {
+        #             "type": "button",
+        #             "text": {
+        #               "type": "plain_text",
+        #               "text": "I need further assistance"
+        #             },
+        #             "url": "${GITHUB_ISSUE_URL}"
+        #           }
+        #         ]
+        #       }
+        #     ]
+        #   }
+        # EOF
+        #   )
+        #   curl -X POST -H "Content-type: application/json; charset=utf-8" \
+        #     -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+        #     -d "$PAYLOAD" \
+        #     https://slack.com/api/chat.postMessage
+      
+             
   closeIssue:
     needs: searchKeyword
     runs-on: ubuntu-latest
@@ -134,3 +175,51 @@ jobs:
             -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
             $API_URL/comments
 
+  # sendFeedbackNotification:
+  #   needs: closeIssue
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Send Feedback Notification
+  #       run: |
+  #         SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}"
+  #         SLACK_CHANNEL_ID="${{ secrets.SLACK_CHANNEL_ID }}"
+  #         SLACK_MESSAGE="*Should you require further assistance, please click on the designated button.*"
+  #         THREAD_TS="${{ github.event.issue.body }}"
+  #         ICON_EMOJI=":information_desk_person:"
+  #         GITHUB_ISSUE_URL="https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
+  #         PAYLOAD=$(cat <<EOF
+  #           {
+  #             "channel": "${SLACK_CHANNEL_ID}",
+  #             "text": "${SLACK_MESSAGE}",
+  #             "icon_emoji": "${ICON_EMOJI}",
+  #             "thread_ts": "${THREAD_TS}",
+  #             "blocks": [
+  #               {
+  #                 "type": "section",
+  #                 "text": {
+  #                   "type": "mrkdwn",
+  #                   "text": "*Should you require further assistance, please click on the designated button.*"
+  #                 }
+  #               },
+  #               {
+  #                 "type": "actions",
+  #                 "elements": [
+  #                   {
+  #                     "type": "button",
+  #                     "text": {
+  #                       "type": "plain_text",
+  #                       "text": "I need further assistance"
+  #                     },
+  #                     "url": "${GITHUB_ISSUE_URL}"
+  #                   }
+  #                 ]
+  #               }
+  #             ]
+  #           }
+  #         EOF
+  #         )
+  #         curl -X POST -H "Content-type: application/json; charset=utf-8" \
+  #           -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+  #           -d "$PAYLOAD" \
+  #           https://slack.com/api/chat.postMessage
+            
