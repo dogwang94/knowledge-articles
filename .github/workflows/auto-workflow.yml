@@ -52,12 +52,15 @@ jobs:
         formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
         echo "The link of knowledge articles:"
         messages=()
-        for dir in $formatted_dirs; do
-          dir=$(basename "$dir" | sed 's/\"//g')
-          message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
-          messages+=("$message")
+        IFS=$'\n' read -r -a dirs_array <<< "$formatted_dirs"
+        for dir in "${dirs_array[@]}"; do
+          if [[ -n "$dir" ]]; then
+            dir=$(basename "$dir")
+            message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
+            messages+=("$message")
+          fi
         done
-        message="${messages[*]}"
+        message=$(printf '%s\n' "${messages[@]}")
         echo "Found message: $message"
         echo "::set-output name=message::$message"
       env:
