@@ -49,8 +49,7 @@ jobs:
       id: generate_message
       if: github.event_name == 'issues' && github.event.action == 'opened'
       run: |
-        formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g')
-          
+        formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /"\n"/g')
         echo "The links to knowledge articles:"
         messages=()
         IFS=$'\n' read -r -a dirs_array <<< "$formatted_dirs"
