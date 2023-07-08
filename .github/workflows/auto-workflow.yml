@@ -58,6 +58,8 @@ jobs:
             dir=$(basename "$dir")
             message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
             messages+=("$message")
+          else
+            messages+=("") # Add an empty entry for the empty directory name
           fi
         done
         message=$(printf '%s\n' "${messages[@]}")
