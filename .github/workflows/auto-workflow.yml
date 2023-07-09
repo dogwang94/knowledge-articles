@@ -85,6 +85,7 @@ jobs:
             "text": "'"$SLACK_MESSAGE"'",
             "thread_ts": "'"$THREAD_TS"'",
             "as_user": true,
+            "link_names": false,
             "username": "",
             "blocks": [
               {
