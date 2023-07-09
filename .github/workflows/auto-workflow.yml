@@ -84,8 +84,8 @@ jobs:
             "channel": "'"$SLACK_CHANNEL_ID"'",
             "text": "'"$SLACK_MESSAGE"'",
             "thread_ts": "'"$THREAD_TS"'",
+            "as_user": true,
             "username": "",
-            "mrkdwn_in": [],
             "blocks": [
               {
                 "type": "section",
