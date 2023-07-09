@@ -76,7 +76,7 @@ jobs:
         THREAD_TS: ${{ github.event.issue.body }}
         GITHUB_ISSUE_URL: "https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
       run: |
-        SLACK_MESSAGE="page_with_curl: *Link of Knowledge Articles:*\n $SLACK_MESSAGE"
+        SLACK_MESSAGE=":page_with_curl: *Link of Knowledge Articles:*\n $SLACK_MESSAGE"
         SLACK_MESSAGE="${SLACK_MESSAGE//'\"'/'\\"'}"
         curl -X POST -H "Content-type: application/json; charset=utf-8" \
           -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
@@ -100,7 +100,7 @@ jobs:
                     "type": "button",
                     "text": {
                       "type": "plain_text",
-                      "text": "I need further assistance"
+                      "text": ":ticket: I need further assistance"
                     },
                     "url": "'"$GITHUB_ISSUE_URL"'"
                   }
