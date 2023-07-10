@@ -66,7 +66,6 @@ jobs:
         pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
         LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
   
-  
     - name: Send Slack Notification
       if: github.event_name == 'issues' && github.event.action == 'opened'
       env:
@@ -77,42 +76,45 @@ jobs:
         ICON_EMOJI: ":information_desk_person:"
         GITHUB_ISSUE_URL: "https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
       run: |
-        if [[ $SLACK_MESSAGE != '']]; then
-          SLACK_MESSAGE=":link: *Link of Knowledge Articles:*\n $SLACK_MESSAGE"
-          SLACK_MESSAGE="${SLACK_MESSAGE//'\"'/'\\"'}"
-          curl -X POST -H "Content-type: application/json; charset=utf-8" \
-            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-            -d '{
-              "channel": "'"$SLACK_CHANNEL_ID"'",
-              "text": "'"$SLACK_MESSAGE"'",
-              "thread_ts": "'"$THREAD_TS"'",
-              "icon_emoji": "'"${ICON_EMOJI}"'",
-              "username": "'" "'",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "'"$SLACK_MESSAGE"'"
-                  }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": ":ticket: I need further assistance"
-                      },
-                      "url": "'"$GITHUB_ISSUE_URL"'"
-                    }
-                  ]
+        if [[ -z "${SLACK_MESSAGE}" ]]; then
+          SLACK_MESSAGE="We were unable to match your query with any knowledge articles. Please click the further assistance button if you still need help."
+        else
+          SLACK_MESSAGE=":link: *Link of Knowledge Articles:*\n${SLACK_MESSAGE}"
+        fi
+      
+        SLACK_MESSAGE="${SLACK_MESSAGE//'\"'/'\\"'}"
+        curl -X POST -H "Content-type: application/json; charset=utf-8" \
+          -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+          -d '{
+            "channel": "'"$SLACK_CHANNEL_ID"'",
+            "text": "'"$SLACK_MESSAGE"'",
+            "thread_ts": "'"$THREAD_TS"'",
+            "icon_emoji": "'"${ICON_EMOJI}"'",
+            "username": "'" "'",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "'"$SLACK_MESSAGE"'"
                 }
-              ]
-            }' \
-            "https://slack.com/api/chat.postMessage"
-
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": ":ticket: I need further assistance"
+                    }
+                  }
+                ]
+              }
+            ]
+          }' \
+          "https://slack.com/api/chat.postMessage"
+      
 
       
       
