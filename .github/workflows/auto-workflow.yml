@@ -112,40 +112,7 @@ jobs:
               ]
             }' \
             "https://slack.com/api/chat.postMessage"
-          if: steps.generate_message.outputs.message == ''
-            SLACK_MESSAGE=":link: *No matching Knowledge Articles. Please click the further assistance button if you still need help "            
-            curl -X POST -H "Content-type: application/json; charset=utf-8" \
-              -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-              -d '{
-                "channel": "'"$SLACK_CHANNEL_ID"'",
-                "text": "'"$SLACK_MESSAGE"'",
-                "thread_ts": "'"$THREAD_TS"'",
-                "icon_emoji": "'"${ICON_EMOJI}"'",
-                "username": "'" "'",
-                "blocks": [
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "'"$SLACK_MESSAGE"'"
-                    }
-                  },
-                  {
-                    "type": "actions",
-                    "elements": [
-                      {
-                        "type": "button",
-                        "text": {
-                          "type": "plain_text",
-                          "text": ":ticket: I need further assistance"
-                        },
-                        "url": "'"$GITHUB_ISSUE_URL"'"
-                      }
-                    ]
-                  }
-                ]
-              }' \
-              "https://slack.com/api/chat.postMessage"
+
 
       
       
