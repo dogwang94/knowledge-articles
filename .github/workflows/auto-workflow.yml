@@ -77,7 +77,7 @@ jobs:
         ICON_EMOJI: ":information_desk_person:"
         GITHUB_ISSUE_URL: "https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
       run: |
-        if: steps.generate_message.outputs.message != ''
+        if [[ $SLACK_MESSAGE != '']]; then
           SLACK_MESSAGE=":link: *Link of Knowledge Articles:*\n $SLACK_MESSAGE"
           SLACK_MESSAGE="${SLACK_MESSAGE//'\"'/'\\"'}"
           curl -X POST -H "Content-type: application/json; charset=utf-8" \
