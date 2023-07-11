@@ -7,6 +7,7 @@ on:
 
 jobs:
   searchKeyword:
+    if: contains(github.event.issue.labels.*.name, 'KABOT Auto Search')
     runs-on: ubuntu-latest
 
     steps:
@@ -114,13 +115,12 @@ jobs:
 
              
   closeIssue:
+    if: contains(github.event.issue.labels.*.name, 'KABOT Auto Search')
     needs: searchKeyword
-    # if: github.event.issue.labels.*.name == 'KABOT Auto Search'
     runs-on: ubuntu-latest
     steps: 
       - name: Close Issue
         id: closeIssue
-        if: contains(github.event.issue.labels.*.name, 'KABOT Auto Search')
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
           TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
@@ -142,4 +142,4 @@ jobs:
             $API_URL/comments
 
 
-            
+          
