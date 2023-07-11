@@ -172,6 +172,7 @@ jobs:
              
   closeIssue:
     needs: searchKeyword
+    if: github.event.issue.labels.*.name == 'KABOT Auto Search'
     runs-on: ubuntu-latest
     steps: 
       - name: Close Issue
