@@ -3,14 +3,20 @@ import json
 from unittest.mock import MagicMock, patch, Mock
 import requests_mock
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
 
 # Import the methods from app.py
-from app import app, get_slack_thread_url, slack_interactivity, open_github_issue, get_userEmail, get_thread_parent, get_message_parent, send_slack_github_url
+from app import app, get_slack_thread_url, open_github_issue, get_userEmail, get_thread_parent, get_message_parent, send_slack_github_url
 
 class AppTestCase(unittest.TestCase):
+    
     def setUp(self):
         app.testing = True
         self.app = app.test_client()
+              
 
     def test_slack_event_url_verification_challenge(self):
         # Create a test challenge data
@@ -133,9 +139,19 @@ class AppTestCase(unittest.TestCase):
         mock_response.status_code = 201
         mock_post.return_value = mock_response
 
-        github_repo_owner=os.environ["GITHUB_REPO_OWNER"]
-        github_repo_name=os.environ["GITHUB_REPO_NAME"]
-        github_token=os.environ["GITHUB_TOKEN"]
+            
+        # github_repo_owner=os.environ["GITHUB_REPO_OWNER"]
+        # github_repo_name=os.environ["GITHUB_REPO_NAME"]
+        # github_token=os.environ["GITHUB_TOKEN"]
+        # print("====> " + str(github_repo_owner))
+        # print("====> " + str(github_repo_name))
+        # print("====> " + str(github_token))
+        github_repo_owner=os.environ.get("GITHUB_REPO_OWNER")
+        github_repo_name=os.environ.get("GITHUB_REPO_NAME")
+        github_token=os.environ.get("GITHUB_TOKEN")
+        # print(os.environ.get("GITHUB_REPO_OWNER"))
+        # print(os.environ.get("GITHUB_REPO_NAME"))
+        # print(os.environ.get("GITHUB_TOKEN"))
         
         # Mock input data
         issue_title = "Test Issue"
@@ -177,9 +193,9 @@ class AppTestCase(unittest.TestCase):
         mock_response.status_code = 404
         mock_post.return_value = mock_response
         
-        github_repo_owner=os.environ["GITHUB_REPO_OWNER"]
-        github_repo_name=os.environ["GITHUB_REPO_NAME"]
-        github_token=os.environ["GITHUB_TOKEN"]
+        github_repo_owner=os.environ.get("GITHUB_REPO_OWNER")
+        github_repo_name=os.environ.get("GITHUB_REPO_NAME")
+        github_token=os.environ.get("GITHUB_TOKEN")
 
         # Mock input data
         issue_title = "Test Issue"
