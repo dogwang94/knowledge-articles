@@ -1,0 +1,147 @@
+name: GitHub and Slack
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+
+jobs:
+  searchKeyword:
+    if: contains(github.event.issue.labels.*.name, 'KABOT Auto Search')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+
+    - name: Search for keyword
+      id: search
+      run: |
+        keywords=$(echo "${{ github.event.issue.title }}" | awk '{print tolower($0)}')
+        readarray -t keywordArray <<< "$(tr ', ' '\n' <<< "$keywords")"
+        dirs=()
+        for keyword in "${keywordArray[@]}"; do
+          echo "Searching for directories containing keyword: $keyword"
+          readarray -t matchingDirs <<< "$(find ./pages -maxdepth 1 -type d -iname "*$keyword*" -not -path './pages' -not -path './pages/*/*')"
+          for dir in "${matchingDirs[@]}"; do
+            dir=$(basename "$dir")
+            if [[ ! " ${dirs[@]} " =~ " $dir " ]]; then
+              dirs+=("$dir")
+            fi
+          done
+        done
+        echo "Found directories: ${dirs[@]}"
+        echo "${dirs[@]}" > output.txt
+        echo "::set-output name=dirnames::$(cat output.txt)"
+      
+    - name: Generate Slack Message
+      id: generate_message
+      if: github.event_name == 'issues' && github.event.action == 'opened'
+      run: |
+        formatted_dirs=$(echo "${{ steps.search.outputs.dirnames }}" | sed 's/ /\n/g' | sed 's/^/"/' | sed 's/$/"/' | paste -sd ' ' -)
+        echo "The link of knowledge articles:"
+        messages=()
+        for dir in $formatted_dirs; do
+          dir=$(basename "$dir" | sed 's/\"//g')
+          if [[ -n $dir ]]; then
+            message="https://probable-dollop-19qk3nl.pages.github.io/pages/$dir/$dir"
+            messages+=("$message")
+          fi
+        done
+        message="${messages[*]}"
+        echo "Found message: $message"
+        echo "::set-output name=message::$message"
+      env:
+        pythonLocation: /opt/hostedtoolcache/Python/3.11.3/x64
+        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.3/x64/lib
+   
+    - name: Send Slack Notification
+      if: github.event_name == 'issues' && github.event.action == 'opened'
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        SLACK_MESSAGE: ${{ steps.generate_message.outputs.message }}
+        THREAD_TS: ${{ github.event.issue.body }}
+        ICON_EMOJI: ":information_desk_person:"
+        GITHUB_ISSUE_URL: "https://github.com/department-of-veterans-affairs/knowledge-articles/issues/new"
+      run: |
+        if [[ -z "${SLACK_MESSAGE}" ]]; then
+          SLACK_MESSAGE="We were unable to match your query with any knowledge articles. Please click the further assistance button if you still need help."
+        else
+          SLACK_MESSAGE=":link: *Link of Knowledge Articles:*\n${SLACK_MESSAGE}"
+        fi
+
+        SLACK_MESSAGE="${SLACK_MESSAGE//'\"'/'\\"'}"
+        curl -X POST -H "Content-type: application/json; charset=utf-8" \
+          -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+          -d '{
+            "channel": "'"$SLACK_CHANNEL_ID"'",
+            "text": "'"$SLACK_MESSAGE"'",
+            "thread_ts": "'"$THREAD_TS"'",
+            "icon_emoji": "'"${ICON_EMOJI}"'",
+            "username": "'" "'",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "'"$SLACK_MESSAGE"'"
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": ":ticket: I need further assistance"
+                    }
+                  }
+                ]
+              }
+            ]
+          }' \
+          "https://slack.com/api/chat.postMessage"
+
+             
+  closeIssue:
+    if: contains(github.event.issue.labels.*.name, 'KABOT Auto Search')
+    needs: searchKeyword
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Close Issue
+        id: closeIssue
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          TOKEN="${{ secrets.KA_GITHUB_TOKEN }}"
+          REPO_OWNER="${{ secrets.KA_GITHUB_REPO_OWNER }}"
+          REPO_NAME="${{ secrets.KA_GITHUB_REPO_NAME }}"
+                  
+          API_URL="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_NUMBER"
+                  
+          # Close the issue
+          curl -X PATCH -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"state": "closed"}' \
+            $API_URL
+                    
+          # Add a comment
+          curl -X POST -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"body": "Auto-closing issue-number: ${{ github.event.issue.number }}"}' \
+            $API_URL/comments
+
+        
